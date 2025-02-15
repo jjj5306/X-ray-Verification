@@ -1,28 +1,156 @@
-import React, { useState } from 'react';
-import '../styles/ImageList.css';
-import SelectedImage from './selectedimage';
+import React, { useState } from "react";
+import "../styles/ImageList.css";
+import SelectedImage from "./SelectedImage";
 
 function ImageList({ onSelect }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedImageInfo, setSelectedImageInfo] = useState({});
 
   const images = [
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
-    { name: 'Abdomen-00051', type: 'JPG File', capacity: '55KB', date: '2024-10-10, 2:55PM', fitness: 0.78, bcs: 3, src: require('../testimage/testimage1.jpg') },
-    { name: 'Thorax-00021', type: 'JPG File', capacity: '78KB', date: '2024-10-10, 3:06PM', fitness: 0.85, bcs: 4, src: require('../testimage/testimage2.jpg') },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
+    {
+      name: "Abdomen-00051",
+      type: "JPG File",
+      capacity: "55KB",
+      date: "2024-10-10, 2:55PM",
+      fitness: 0.78,
+      bcs: 3,
+      src: require("../testimage/testimage1.jpg"),
+    },
+    {
+      name: "Thorax-00021",
+      type: "JPG File",
+      capacity: "78KB",
+      date: "2024-10-10, 3:06PM",
+      fitness: 0.85,
+      bcs: 4,
+      src: require("../testimage/testimage2.jpg"),
+    },
     // 추가 이미지 데이터
   ];
 
@@ -34,9 +162,16 @@ function ImageList({ onSelect }) {
   return (
     <div>
       <div className="image-list-container">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "10px",
+          }}
+        >
           <h2 style={{ margin: 0 }}>X-ray Verifier</h2>
-          <div style={{ marginLeft: 'auto' }}>
+          <div style={{ marginLeft: "auto" }}>
             <button className="open-folder-button">Open New Folder</button>
           </div>
         </div>
@@ -71,9 +206,9 @@ function ImageList({ onSelect }) {
       </div>
 
       {selectedImage && (
-        <SelectedImage 
-          src={selectedImage} 
-          onClose={() => setSelectedImage(null)} 
+        <SelectedImage
+          src={selectedImage}
+          onClose={() => setSelectedImage(null)}
           imageName={selectedImageInfo.name}
           imageType={selectedImageInfo.type}
           imageCapacity={selectedImageInfo.capacity}

@@ -37,7 +37,7 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  color: #A71042;
+  color: #a71042;
   font-weight: bold;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .start-predictions-button {
-  background-color: #A71042;
+  background-color: #a71042;
   color: white;
   border: none;
   padding: 10px 20px;
