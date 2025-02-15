@@ -5,159 +5,88 @@ import SelectedImage from "./SelectedImage";
 function ImageList({ onSelect }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedImageInfo, setSelectedImageInfo] = useState({});
+  const [images, setImages] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const images = [
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    {
-      name: "Abdomen-00051",
-      type: "JPG File",
-      capacity: "55KB",
-      date: "2024-10-10, 2:55PM",
-      fitness: 0.78,
-      bcs: 3,
-      src: require("../testimage/testimage1.jpg"),
-    },
-    {
-      name: "Thorax-00021",
-      type: "JPG File",
-      capacity: "78KB",
-      date: "2024-10-10, 3:06PM",
-      fitness: 0.85,
-      bcs: 4,
-      src: require("../testimage/testimage2.jpg"),
-    },
-    // 추가 이미지 데이터
-  ];
+  const validateFile = (file) => {
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      throw new Error("JPG 또는 PNG 파일만 업로드 가능합니다.");
+    }
 
-  const handleImageClick = (image) => {
+    if (file.size > 3 * 1024 * 1024) {
+      throw new Error("파일 크기는 3MB를 초과할 수 없습니다.");
+    }
+
+    return true;
+  };
+
+  const formatFileName = (fileName) => {
+    // 확장자 제거
+    return fileName.replace(/\.(png|jpe?g)$/i, "");
+  };
+
+  const formatFileType = (fileType) => {
+    // image/png -> png, image/jpeg -> jpg 형식으로 변환
+    const typeMap = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+    };
+    return typeMap[fileType] || fileType;
+  };
+
+  const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+
+    for (const file of files) {
+      try {
+        validateFile(file);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const newImage = {
+            name: formatFileName(file.name),
+            type: formatFileType(file.type),
+            capacity: `${(file.size / 1024).toFixed(1)}KB`,
+            date: new Date().toLocaleString(),
+            src: e.target.result,
+          };
+
+          setImages((prev) => [...prev, newImage]);
+        };
+
+        reader.readAsDataURL(file);
+      } catch (error) {
+        setErrorMessage(error.message);
+        setShowError(true);
+      }
+    }
+    event.target.value = "";
+  };
+
+  const handleViewDetails = (image) => {
     setSelectedImage(image.src);
     setSelectedImageInfo(image);
   };
+
+  const handlePredict = (image) => {
+    // Predict 기능 수정 필요
+    setSelectedImage(image.src);
+    setSelectedImageInfo(image);
+  };
+
+  // 검색어 변경 처리
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  // 검색된 이미지 필터링
+  const filteredImages = images.filter((image) =>
+    image.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div>
@@ -167,15 +96,31 @@ function ImageList({ onSelect }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: "10px",
+            marginBottom: "20px",
           }}
         >
-          <h2 style={{ margin: 0 }}>X-ray Verifier</h2>
-          <div style={{ marginLeft: "auto" }}>
-            <button className="open-folder-button">Open New Folder</button>
+          <h2>X-ray Verifier</h2>
+          <div>
+            <input
+              type="file"
+              id="file-upload"
+              style={{ display: "none" }}
+              multiple
+              accept=".jpg,.jpeg,.png"
+              onChange={handleFileUpload}
+            />
+            <label htmlFor="file-upload" className="open-folder-button">
+              Upload Images
+            </label>
           </div>
         </div>
-        <input type="text" placeholder="Search" className="search-input" />
+        <input
+          type="text"
+          placeholder="Search"
+          className="search-input"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
       </div>
 
       <div className="table-container">
@@ -186,19 +131,33 @@ function ImageList({ onSelect }) {
               <th>유형</th>
               <th>용량</th>
               <th>날짜</th>
-              <th>fitness</th>
-              <th>BCS</th>
+              <th>상세보기</th>
+              <th>예측</th>
             </tr>
           </thead>
           <tbody>
-            {images.map((image, index) => (
-              <tr key={index} onClick={() => handleImageClick(image)}>
+            {filteredImages.map((image, index) => (
+              <tr key={index}>
                 <td>{image.name}</td>
                 <td>{image.type}</td>
                 <td>{image.capacity}</td>
                 <td>{image.date}</td>
-                <td>{image.fitness}</td>
-                <td>{image.bcs}</td>
+                <td>
+                  <button
+                    onClick={() => handleViewDetails(image)}
+                    className="action-button"
+                  >
+                    View
+                  </button>
+                </td>
+                <td>
+                  <button
+                    onClick={() => handlePredict(image)}
+                    className="action-button"
+                  >
+                    Predict
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -213,10 +172,16 @@ function ImageList({ onSelect }) {
           imageType={selectedImageInfo.type}
           imageCapacity={selectedImageInfo.capacity}
           imageDate={selectedImageInfo.date}
-          imageScore={selectedImageInfo.fitness}
-          imageBcs={selectedImageInfo.bcs}
           onSelect={onSelect}
         />
+      )}
+
+      {showError && (
+        <div className="error-dialog">
+          <h3>업로드 오류</h3>
+          <p>{errorMessage}</p>
+          <button onClick={() => setShowError(false)}>확인</button>
+        </div>
       )}
     </div>
   );
