@@ -46,17 +46,3 @@
   transform: translateY(-2px);
   font-size: 22px;
 }
-
-.start-predictions-button {
-  background-color: #a71042;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.start-predictions-button:hover {
-  background-color: #8b1539;
-}
