@@ -1,0 +1,102 @@
+.result-page {
+    padding: 0px;
+    background-color: #f9f9f9; /* 배경색 */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .result-header h2 {
+    margin: 0;
+    flex-grow: 1;
+  }
+  
+  .back-button {
+    background-color: #A71042; /* 버튼 배경색 */
+    color: white; /* 글자색 */
+    border: none; /* 테두리 없음 */
+    padding: 10px 15px; /* 내부 여백 */
+    border-radius: 5px; /* 모서리 둥글게 */
+    cursor: pointer; /* 커서 포인터로 변경 */
+    margin-left: 20px; /* 버튼 간격 */
+    font-size: 16px;
+  }
+
+  .start-predictions-button:hover {
+    background-color: #8b1539;
+  }
+
+  .start-predictions-button {
+    background-color: #A71042; /* 버튼 배경색 */
+    color: white; /* 글자색 */
+    border: none; /* 테두리 없음 */
+    padding: 10px 15px; /* 내부 여백 */
+    border-radius: 5px; /* 모서리 둥글게 */
+    cursor: pointer; /* 커서 포인터로 변경 */
+    font-size: 16px;
+  }
+  
+  .start-predictions-button:hover {
+    background-color: #8b1539;
+  }
+  
+  .result-content {
+    margin-top: 0px; /* 위 여백 */
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start; /* 상단 정렬 */
+  }
+  
+  .result-image {
+    width: 60%;
+    height: 700px;
+    object-fit: contain;
+    margin-bottom: 0px; /* 아래 여백 */
+    background-color: black;
+  }
+  
+  .prediction-container {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    margin-left: 20px; /* 이미지와의 간격 */
+    width: 40%; /* 오른쪽 상자 너비 */
+    height: 100%;
+  }
+  
+  .prediction-details {
+    margin: 0px; /* 위아래 여백 */
+    background-color: #fff; /* 배경색 */
+    padding: 10px; /* 내부 여백 */
+    border: 1px solid #ddd; /* 테두리 */
+    border-radius: 4px; /* 모서리 둥글게 */
+    height: 50%;
+  }
+  
+  .final-result-container {
+    margin-top: 20px; /* 위 여백 */
+    background-color: #fff; /* 배경색 */
+    padding: 10px; /* 내부 여백 */
+    border: 1px solid #ddd; /* 테두리 */
+    border-radius: 4px; /* 모서리 둥글게 */
+    height: 50%;
+  }
+  
+  .error {
+    color: red; /* 오류 메시지 색상 */
+  }
+  
+  .normal {
+    color: green; /* 정상 메시지 색상 */
+  }
+  
+  .final-result {
+    font-weight: bold; /* 글자 두껍게 */
+    margin-top: 10px; /* 위 여백 */
+  }

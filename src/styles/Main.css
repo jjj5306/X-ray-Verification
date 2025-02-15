@@ -1,0 +1,63 @@
+.main-container {
+  display: flex;
+  height: 100vh; /* 전체 높이 */
+  position: relative; /* 자식 요소의 절대 위치를 위한 상대 위치 설정 */
+}
+
+.sidebar {
+  width: 19%; /* 사이드바 너비 */
+  min-width: 200px;
+  height: 100%; /* 사이드바 높이 */
+  background-color: #A71042; /* 사이드바 배경색 변경 */
+}
+
+.content {
+  width: 81%;
+  height: calc(100% - 40px);
+  padding: 20px;
+  background-color: #FFFFFF; /* 콘텐츠 배경색 */
+  overflow-y: auto; /* 세로 스크롤바 추가 */
+  position: relative; /* 자식 요소의 절대 위치를 위한 상대 위치 설정 */
+}
+
+.navbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.user-button {
+  padding: 10px 15px;
+  background-color: #A71042; /* 로그인 버튼 색상 */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.user-button:hover {
+  background-color: #8b1539; /* 로그인 버튼 호버 색상 */
+}
+
+.selected-content-container {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #F9F9F9; /* 선택된 콘텐츠 배경색 */
+  height: calc(100% - 120px); /* navbar 높이를 제외한 나머지 높이 */
+  overflow-y: auto; /* 세로 스크롤바 추가 */
+  position: relative; /* 자식 요소의 절대 위치를 위한 상대 위치 설정 */
+  z-index: 2; /* 로고보다 위에 표시 */
+}
+
+.reverse_logo {
+  position: absolute; /* 절대 위치 설정 */
+  top: 50%; /* 수직 중앙 정렬 */
+  left: 50%; /* 수평 중앙 정렬 */
+  transform: translate(-50%, -50%); /* 중앙 정렬을 위한 변환 */
+  width: auto;
+  height: 50%; /* 로고 높이 설정 */
+  opacity: 0.3; /* 투명도 설정 */
+  z-index: 1; /* 다른 콘텐츠보다 위에 표시 */
+}
