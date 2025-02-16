@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import "../styles/ImageList.css";
 import SelectedImage from "./SelectedImage";
+import PredictionResultModal from "./PredictedImage";
 
-function ImageList({ onSelect }) {
+function ImageList() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedImageInfo, setSelectedImageInfo] = useState({});
+  const [predictionResult, setPredictionResult] = useState(null);
   const [images, setImages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [predictions, setPredictions] = useState({});
+  const [loadingStates, setLoadingStates] = useState({}); // 이미지별 로딩 상태
 
   const validateFile = (file) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -23,42 +27,23 @@ function ImageList({ onSelect }) {
     return true;
   };
 
-  const formatFileName = (fileName) => {
-    // 확장자 제거
-    return fileName.replace(/\.(png|jpe?g)$/i, "");
-  };
-
-  const formatFileType = (fileType) => {
-    // image/png -> png, image/jpeg -> jpg 형식으로 변환
-    const typeMap = {
-      "image/png": "png",
-      "image/jpeg": "jpg",
-      "image/jpg": "jpg",
-    };
-    return typeMap[fileType] || fileType;
-  };
-
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
 
     for (const file of files) {
       try {
         validateFile(file);
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newImage = {
-            name: formatFileName(file.name),
-            type: formatFileType(file.type),
-            capacity: `${(file.size / 1024).toFixed(1)}KB`,
-            date: new Date().toLocaleString(),
-            src: e.target.result,
-          };
-
-          setImages((prev) => [...prev, newImage]);
+        const newImage = {
+          id: `${file.name}-${Date.now()}`,
+          name: file.name.replace(/\.(png|jpe?g)$/i, ""),
+          type: file.type.split("/")[1],
+          capacity: `${(file.size / 1024).toFixed(1)}KB`,
+          date: new Date().toLocaleString(),
+          file: file,
+          path: URL.createObjectURL(file),
         };
 
-        reader.readAsDataURL(file);
+        setImages((prev) => [...prev, newImage]);
       } catch (error) {
         setErrorMessage(error.message);
         setShowError(true);
@@ -68,25 +53,67 @@ function ImageList({ onSelect }) {
   };
 
   const handleViewDetails = (image) => {
-    setSelectedImage(image.src);
+    setSelectedImage(image.path);
     setSelectedImageInfo(image);
   };
 
-  const handlePredict = (image) => {
-    // Predict 기능 수정 필요
-    setSelectedImage(image.src);
-    setSelectedImageInfo(image);
+  const handlePredict = async (image) => {
+    // 해당 이미지의 로딩 상태만 변경
+    setLoadingStates((prev) => ({
+      ...prev,
+      [image.id]: true,
+    }));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", image.file);
+
+      const response = await fetch("http://localhost:33333/predict", {
+        method: "POST",
+        body: formData,
+        credentials: "omit",
+        mode: "cors",
+        cache: "no-cache",
+      });
+
+      if (!response.ok) {
+        throw new Error("예측 처리 중 오류가 발생했습니다.");
+      }
+
+      const result = await response.json();
+      setPredictions((prev) => ({
+        ...prev,
+        [image.id]: result,
+      }));
+    } catch (error) {
+      setErrorMessage(error.message);
+      setShowError(true);
+    } finally {
+      // 해당 이미지의 로딩 상태만 해제
+      setLoadingStates((prev) => ({
+        ...prev,
+        [image.id]: false,
+      }));
+    }
   };
 
-  // 검색어 변경 처리
+  const handleShowPrediction = (image) => {
+    setPredictionResult(predictions[image.id]);
+  };
+
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  // 검색된 이미지 필터링
   const filteredImages = images.filter((image) =>
     image.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // 버튼 비활성화 조건을 체크하는 함수
+  const isButtonDisabled = (imageId) => {
+    // 현재 이미지가 로딩 중이거나, 다른 이미지들 중 하나라도 로딩 중인 경우
+    return Object.values(loadingStates).some((isLoading) => isLoading);
+  };
 
   return (
     <div>
@@ -109,7 +136,22 @@ function ImageList({ onSelect }) {
               accept=".jpg,.jpeg,.png"
               onChange={handleFileUpload}
             />
-            <label htmlFor="file-upload" className="open-folder-button">
+            <label
+              htmlFor="file-upload"
+              className="open-folder-button"
+              style={{
+                opacity: Object.values(loadingStates).some(
+                  (isLoading) => isLoading
+                )
+                  ? 0.5
+                  : 1,
+                pointerEvents: Object.values(loadingStates).some(
+                  (isLoading) => isLoading
+                )
+                  ? "none"
+                  : "auto",
+              }}
+            >
               Upload Images
             </label>
           </div>
@@ -136,8 +178,8 @@ function ImageList({ onSelect }) {
             </tr>
           </thead>
           <tbody>
-            {filteredImages.map((image, index) => (
-              <tr key={index}>
+            {filteredImages.map((image) => (
+              <tr key={image.id}>
                 <td>{image.name}</td>
                 <td>{image.type}</td>
                 <td>{image.capacity}</td>
@@ -151,12 +193,25 @@ function ImageList({ onSelect }) {
                   </button>
                 </td>
                 <td>
-                  <button
-                    onClick={() => handlePredict(image)}
-                    className="action-button"
-                  >
-                    Predict
-                  </button>
+                  {predictions[image.id] ? (
+                    <button
+                      onClick={() => handleShowPrediction(image)}
+                      className="action-button"
+                    >
+                      예측 결과 보기
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handlePredict(image)}
+                      className="action-button"
+                      disabled={isButtonDisabled(image.id)}
+                      style={{
+                        opacity: isButtonDisabled(image.id) ? 0.5 : 1,
+                      }}
+                    >
+                      {loadingStates[image.id] ? "Processing..." : "Predict"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -172,7 +227,13 @@ function ImageList({ onSelect }) {
           imageType={selectedImageInfo.type}
           imageCapacity={selectedImageInfo.capacity}
           imageDate={selectedImageInfo.date}
-          onSelect={onSelect}
+        />
+      )}
+
+      {predictionResult && (
+        <PredictionResultModal
+          result={predictionResult}
+          onClose={() => setPredictionResult(null)}
         />
       )}
 

@@ -2,8 +2,13 @@ from flask import Flask, request, jsonify, Response
 import json, torch, numpy as np
 import os, sys, PIL
 from models import model
+from flask_cors import CORS
+from werkzeug.utils import secure_filename
+import base64 
+from io import BytesIO
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def home():
@@ -11,16 +16,31 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.get_json()
-    # print(data)
+    # logging
+    print("\n=== Request headers ===")
+    print(request.headers)
     
-    if not data or "path" not in data:
+    print("=== Request files ===")
+    print(request.files)
+
+    if 'file' not in request.files:
         return jsonify({"error": "Invalid input provided"}), 400
     
-    image_path = data.get("path", "")
-    print(f"- 예측 시작 {image_path} -")
-    image = PIL.Image.open(image_path).convert("RGB")
+    file = request.files['file']
+
+    # logging
+    print("\n\n=== File info ===")
+    print(f"Filename: {file.filename}")
+    print(f"Content Type: {file.content_type}")
+    print(f"File Size: {len(file.read())} bytes")
+    file.seek(0) 
+
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
     
+    print(f"\n- 예측 시작 {file.filename} -")
+    image = PIL.Image.open(file).convert("RGB")
+
     # 2개의 모델 객체 초기화
     stage1_model = model.PoseModel()
     stage2_model = model.DetailedPoseModel()
@@ -31,9 +51,10 @@ def predict():
     forResult = stage2_model._get_class_name(output1)
     output2 = stage2_model.predict(output1, image)
 
-    image_name = os.path.basename(image_path)  # 이미지 파일 이름만 추출    
+    # 파일 이름 처리 수정
+    image_name = secure_filename(file.filename)
     # 이미지를 저장
-    output2[1].save(f"predicted/{image_name}.png")
+    # output2[1].save(f"predicted/{image_name}")
     
     result_data = {"posture": forResult[0], "abnormal_codes": []}
     for item in output2[0]:
@@ -49,12 +70,22 @@ def predict():
         result_data["status"] = "error"
         result_data["message"] = "Retake recommended"
     
-    print(json.dumps(result_data, ensure_ascii=False, indent=4))
 
+    # PIL Image -> BytesIO 변환
+    image_stream = BytesIO()
+    output2[1].save(image_stream, format="JPEG")  # JPEG 대신 PNG 등으로 변경 가능
+    image_stream.seek(0)  # 스트림의 시작 위치로 이동
+
+    # BytesIO -> Base64 인코딩
+    encoded_image = base64.b64encode(image_stream.getvalue()).decode("utf-8")
+
+    result_data["image"] = encoded_image  # JSON 데이터에 추가
+
+    print(json.dumps(result_data, ensure_ascii=False, indent=4))
     
     return Response(
-    json.dumps(result_data, ensure_ascii=False, indent=4),
-    content_type="application/json; charset=utf-8"
+        json.dumps(result_data, ensure_ascii=False, indent=4),
+        content_type="application/json; charset=utf-8"
 )
 
 if __name__ == "__main__":
