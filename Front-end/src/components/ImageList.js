@@ -4,7 +4,6 @@ import SelectedImage from "./SelectedImage";
 import PredictionResultModal from "./PredictedImage";
 
 function ImageList() {
-  // onSelect prop 제거
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedImageInfo, setSelectedImageInfo] = useState({});
   const [predictionResult, setPredictionResult] = useState(null);
@@ -12,8 +11,8 @@ function ImageList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [predictions, setPredictions] = useState({});
+  const [loadingStates, setLoadingStates] = useState({}); // 이미지별 로딩 상태
 
   const validateFile = (file) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -59,7 +58,12 @@ function ImageList() {
   };
 
   const handlePredict = async (image) => {
-    setIsLoading(true);
+    // 해당 이미지의 로딩 상태만 변경
+    setLoadingStates((prev) => ({
+      ...prev,
+      [image.id]: true,
+    }));
+
     try {
       const formData = new FormData();
       formData.append("file", image.file);
@@ -85,7 +89,11 @@ function ImageList() {
       setErrorMessage(error.message);
       setShowError(true);
     } finally {
-      setIsLoading(false);
+      // 해당 이미지의 로딩 상태만 해제
+      setLoadingStates((prev) => ({
+        ...prev,
+        [image.id]: false,
+      }));
     }
   };
 
@@ -100,6 +108,12 @@ function ImageList() {
   const filteredImages = images.filter((image) =>
     image.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // 버튼 비활성화 조건을 체크하는 함수
+  const isButtonDisabled = (imageId) => {
+    // 현재 이미지가 로딩 중이거나, 다른 이미지들 중 하나라도 로딩 중인 경우
+    return Object.values(loadingStates).some((isLoading) => isLoading);
+  };
 
   return (
     <div>
@@ -122,7 +136,22 @@ function ImageList() {
               accept=".jpg,.jpeg,.png"
               onChange={handleFileUpload}
             />
-            <label htmlFor="file-upload" className="open-folder-button">
+            <label
+              htmlFor="file-upload"
+              className="open-folder-button"
+              style={{
+                opacity: Object.values(loadingStates).some(
+                  (isLoading) => isLoading
+                )
+                  ? 0.5
+                  : 1,
+                pointerEvents: Object.values(loadingStates).some(
+                  (isLoading) => isLoading
+                )
+                  ? "none"
+                  : "auto",
+              }}
+            >
               Upload Images
             </label>
           </div>
@@ -175,9 +204,12 @@ function ImageList() {
                     <button
                       onClick={() => handlePredict(image)}
                       className="action-button"
-                      disabled={isLoading}
+                      disabled={isButtonDisabled(image.id)}
+                      style={{
+                        opacity: isButtonDisabled(image.id) ? 0.5 : 1,
+                      }}
                     >
-                      {isLoading ? "Processing..." : "Predict"}
+                      {loadingStates[image.id] ? "Processing..." : "Predict"}
                     </button>
                   )}
                 </td>
@@ -210,12 +242,6 @@ function ImageList() {
           <h3>업로드 오류</h3>
           <p>{errorMessage}</p>
           <button onClick={() => setShowError(false)}>확인</button>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="loading-overlay">
-          <div className="loading-spinner">Predicting...</div>
         </div>
       )}
     </div>
