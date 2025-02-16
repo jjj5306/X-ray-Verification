@@ -9,6 +9,7 @@ function ImageList({ onSelect }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateFile = (file) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -23,42 +24,22 @@ function ImageList({ onSelect }) {
     return true;
   };
 
-  const formatFileName = (fileName) => {
-    // 확장자 제거
-    return fileName.replace(/\.(png|jpe?g)$/i, "");
-  };
-
-  const formatFileType = (fileType) => {
-    // image/png -> png, image/jpeg -> jpg 형식으로 변환
-    const typeMap = {
-      "image/png": "png",
-      "image/jpeg": "jpg",
-      "image/jpg": "jpg",
-    };
-    return typeMap[fileType] || fileType;
-  };
-
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
 
     for (const file of files) {
       try {
         validateFile(file);
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newImage = {
-            name: formatFileName(file.name),
-            type: formatFileType(file.type),
-            capacity: `${(file.size / 1024).toFixed(1)}KB`,
-            date: new Date().toLocaleString(),
-            src: e.target.result,
-          };
-
-          setImages((prev) => [...prev, newImage]);
+        const newImage = {
+          name: file.name.replace(/\.(png|jpe?g)$/i, ""),
+          type: file.type.split("/")[1],
+          capacity: `${(file.size / 1024).toFixed(1)}KB`,
+          date: new Date().toLocaleString(),
+          file: file,
+          path: URL.createObjectURL(file),
         };
 
-        reader.readAsDataURL(file);
+        setImages((prev) => [...prev, newImage]);
       } catch (error) {
         setErrorMessage(error.message);
         setShowError(true);
@@ -68,22 +49,45 @@ function ImageList({ onSelect }) {
   };
 
   const handleViewDetails = (image) => {
-    setSelectedImage(image.src);
+    setSelectedImage(image.path);
     setSelectedImageInfo(image);
   };
 
-  const handlePredict = (image) => {
-    // Predict 기능 수정 필요
-    setSelectedImage(image.src);
-    setSelectedImageInfo(image);
+  const handlePredict = async (image) => {
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", image.file);
+
+      const response = await fetch("http://localhost:33333/predict", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("예측 처리 중 오류가 발생했습니다.");
+      }
+
+      const result = await response.json();
+
+      if (result.status === "error") {
+        setErrorMessage(result.message);
+        setShowError(true);
+      }
+
+      onSelect && onSelect(result);
+    } catch (error) {
+      setErrorMessage(error.message);
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // 검색어 변경 처리
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  // 검색된 이미지 필터링
   const filteredImages = images.filter((image) =>
     image.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -154,8 +158,9 @@ function ImageList({ onSelect }) {
                   <button
                     onClick={() => handlePredict(image)}
                     className="action-button"
+                    disabled={isLoading}
                   >
-                    Predict
+                    {isLoading ? "Processing..." : "Predict"}
                   </button>
                 </td>
               </tr>
@@ -181,6 +186,12 @@ function ImageList({ onSelect }) {
           <h3>업로드 오류</h3>
           <p>{errorMessage}</p>
           <button onClick={() => setShowError(false)}>확인</button>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner">Predicting...</div>
         </div>
       )}
     </div>
