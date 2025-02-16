@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import "../styles/ImageList.css";
 import SelectedImage from "./SelectedImage";
+import PredictionResultModal from "./PredictedImage";
 
-function ImageList({ onSelect }) {
+function ImageList() {
+  // onSelect prop 제거
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedImageInfo, setSelectedImageInfo] = useState({});
+  const [predictionResult, setPredictionResult] = useState(null);
   const [images, setImages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [predictions, setPredictions] = useState({});
 
   const validateFile = (file) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
@@ -31,6 +35,7 @@ function ImageList({ onSelect }) {
       try {
         validateFile(file);
         const newImage = {
+          id: `${file.name}-${Date.now()}`,
           name: file.name.replace(/\.(png|jpe?g)$/i, ""),
           type: file.type.split("/")[1],
           capacity: `${(file.size / 1024).toFixed(1)}KB`,
@@ -62,6 +67,9 @@ function ImageList({ onSelect }) {
       const response = await fetch("http://localhost:33333/predict", {
         method: "POST",
         body: formData,
+        credentials: "omit",
+        mode: "cors",
+        cache: "no-cache",
       });
 
       if (!response.ok) {
@@ -69,19 +77,20 @@ function ImageList({ onSelect }) {
       }
 
       const result = await response.json();
-
-      if (result.status === "error") {
-        setErrorMessage(result.message);
-        setShowError(true);
-      }
-
-      onSelect && onSelect(result);
+      setPredictions((prev) => ({
+        ...prev,
+        [image.id]: result,
+      }));
     } catch (error) {
       setErrorMessage(error.message);
       setShowError(true);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleShowPrediction = (image) => {
+    setPredictionResult(predictions[image.id]);
   };
 
   const handleSearchChange = (event) => {
@@ -140,8 +149,8 @@ function ImageList({ onSelect }) {
             </tr>
           </thead>
           <tbody>
-            {filteredImages.map((image, index) => (
-              <tr key={index}>
+            {filteredImages.map((image) => (
+              <tr key={image.id}>
                 <td>{image.name}</td>
                 <td>{image.type}</td>
                 <td>{image.capacity}</td>
@@ -155,13 +164,22 @@ function ImageList({ onSelect }) {
                   </button>
                 </td>
                 <td>
-                  <button
-                    onClick={() => handlePredict(image)}
-                    className="action-button"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Processing..." : "Predict"}
-                  </button>
+                  {predictions[image.id] ? (
+                    <button
+                      onClick={() => handleShowPrediction(image)}
+                      className="action-button"
+                    >
+                      예측 결과 보기
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handlePredict(image)}
+                      className="action-button"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Processing..." : "Predict"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -177,7 +195,13 @@ function ImageList({ onSelect }) {
           imageType={selectedImageInfo.type}
           imageCapacity={selectedImageInfo.capacity}
           imageDate={selectedImageInfo.date}
-          onSelect={onSelect}
+        />
+      )}
+
+      {predictionResult && (
+        <PredictionResultModal
+          result={predictionResult}
+          onClose={() => setPredictionResult(null)}
         />
       )}
 

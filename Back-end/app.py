@@ -4,6 +4,8 @@ import os, sys, PIL
 from models import model
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+import base64 
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)
@@ -52,7 +54,7 @@ def predict():
     # 파일 이름 처리 수정
     image_name = secure_filename(file.filename)
     # 이미지를 저장
-    output2[1].save(f"predicted/{image_name}")
+    # output2[1].save(f"predicted/{image_name}")
     
     result_data = {"posture": forResult[0], "abnormal_codes": []}
     for item in output2[0]:
@@ -68,6 +70,17 @@ def predict():
         result_data["status"] = "error"
         result_data["message"] = "Retake recommended"
     
+
+    # PIL Image -> BytesIO 변환
+    image_stream = BytesIO()
+    output2[1].save(image_stream, format="JPEG")  # JPEG 대신 PNG 등으로 변경 가능
+    image_stream.seek(0)  # 스트림의 시작 위치로 이동
+
+    # BytesIO -> Base64 인코딩
+    encoded_image = base64.b64encode(image_stream.getvalue()).decode("utf-8")
+
+    result_data["image"] = encoded_image  # JSON 데이터에 추가
+
     print(json.dumps(result_data, ensure_ascii=False, indent=4))
     
     return Response(
