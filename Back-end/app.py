@@ -7,6 +7,15 @@ from werkzeug.utils import secure_filename
 import base64 
 from io import BytesIO
 
+num_gpus = torch.cuda.device_count()
+if num_gpus > 1:
+    target_gpu = num_gpus - 2  # 마지막 디바이스 -1
+else:
+    target_gpu = 0  # GPU가 하나뿐이면 0번 사용
+
+os.environ["CUDA_VISIBLE_DEVICES"] = str(target_gpu)
+print(f"Using GPU: {os.environ['CUDA_VISIBLE_DEVICES']}")
+
 app = Flask(__name__)
 CORS(app)
 
@@ -54,7 +63,10 @@ def predict():
     # 파일 이름 처리 수정
     image_name = secure_filename(file.filename)
     # 이미지를 저장
-    # output2[1].save(f"predicted/{image_name}")
+    
+    os.makedirs(f"./data/{forResult[0]}/",exist_ok=True)
+    output2[1].save(f"./data/{forResult[0]}/{image_name}")
+    
     
     result_data = {"posture": forResult[0], "abnormal_codes": []}
     for item in output2[0]:
